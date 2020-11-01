@@ -1,11 +1,12 @@
-typedef struct CommandList{
+typedef struct Command{
     char *curr;
     char *next;
 } CommandList;
 
 typedef struct Target{
     char *fileName;
-    CommandList *commandList; 
+    Command *commandList;//start of command list
+    Command *endC;//end of command list 
     char **dependencies; 
     short isOutOfDate;
 } Target;

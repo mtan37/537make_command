@@ -86,16 +86,23 @@ short isBlankLine(char *line){
     }
     return 1;
 }
+
 /*
  * give a filename, return the target object from the target list
+ * if target with the filename is not found, returns NULL
  */
 Target *getTargetFromList(TargetList *list, char *targetName){
     //TODO
-    //DELETE after function completion, the below code is used to get rid of the compilation warning
-    TargetList *tmp = list;
-    char *tmpV = targetName;
+    //loop through the list
+    while(NULL != list){
+        Target *curr = list->curr;
+        if(NULL != curr && 0 == strcmp(curr->fileName, targetName)){
+            return curr;
+        }
+    }
     return NULL;
 }
+
 /*
  * process line that describe a target
  */
@@ -201,6 +208,7 @@ Target *processLine(char *line, Target *currTarget){
         //TODO    
     }
 }
+
 /*
  * parse makefile and generate a list of Target
  */

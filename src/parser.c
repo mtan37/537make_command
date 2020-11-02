@@ -7,15 +7,18 @@
     //4)indicte whether it is out of date
 //it will store those loaded targets into a list of targets.
 //it will call the validator to check:
+    
     //1)whether there is a chain in the dependencies. If there is, not more check is needed and return error
     //2)whether the dependecies are all existing files or targets
     //3) whether the dependencies are out of date
 //a target will be only sent to the executor if it is out of date
 
-#include <stdio>
-#include <stdin>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "parser.h"
-const size_t BUFFSIZE = 4096;
+#include "util.h"
+const int BUFFSIZE = 4096;
 
 /*
  * initialize a targetList object
@@ -32,7 +35,7 @@ TargetList *initTargetList(Target *curr){
  */
 Target *initTarget(){
     Target *curr = calloc_w(1,sizeof(Target));
-    curr->itOutOfDate = -1;
+    curr->isOutOfDate = 0;
     return curr;
 }
 
@@ -42,22 +45,36 @@ Target *initTarget(){
  */
 short isBlankLine(char *line){
     int i = 0;
-    while(NULL != line && '\0' != line[i]){
-        if(' ' != line[i] && '\t' != line[i])
+    int length = strlen(line);
+    while(NULL != line && i < length){
+        if(' ' != line[i] && '\t' != line[i]){
             return 0;
+        }
+        i++;
     }
     return 1;
 }
 /*
+ * give a filename, return the target object from the target list
+ */
+Target *getTargetFromList(TargetList *list, char *targetName){
+    //TODO
+    //DELETE after function completion, the below code is used to get rid of the compilation warning
+    TargetList *tmp = list;
+    char *tmpV = targetName;
+    return NULL;
+}
+/*
  * process line that describe a target
  */
-void processTargetLine(char *line, Target *currTarget){
+Target *processTargetLine(char *line){
+    int length = strlen(line);
     char buff[BUFFSIZE];
     char **tempList = calloc_w(BUFFSIZE, sizeof(char *));
     int i = 0;
     //get the target name
     while(i < BUFFSIZE && ':' != line[i]){
-        buff[]
+        buff[i] = line[i];
         i++;
     }
     //check if there exist a valid target
@@ -66,52 +83,57 @@ void processTargetLine(char *line, Target *currTarget){
     }
     buff[i] = '\n';
     i++;//skip char :
-    currTarget->fileName = calloc_w(i - 1, sizeof(char));
-    strcpy(currTarget->fileName, buff);
+    Target *currTarget = initTarget();
+    currTarget->fileName = calloc_w(i, sizeof(char));
+    strncpy(currTarget->fileName, buff,i-1);
     //get the list of dependencies
     int dependenciesCount = 0;
-    while(i < 4096 && '\n' != line[i]){
+    while(i < 4096 && i < length){
         int j = 0;
-        while(' ' != line[i] && '\t' != line[i] && '\n' != line[i]){
-            buff[j] = line[i]  
+        while(' ' != line[i+j] && '\t' != line[i+j] && (i+j) < length){
+            buff[j] = line[i+j]; 
             j++;
-            i++;
-        }  
+        }
+        i = i + j; 
         if(j > 0){
-            BUFF[j + 1] = '\n'
+            buff[j + 1] = '\n';
             tempList[dependenciesCount] = calloc(j + 1,sizeof(char));
-            strcpy(tempList[dependenciesCount], buff);
+            strncpy(tempList[dependenciesCount], buff,j);
             dependenciesCount++;
         }   
+        if(length == i)
+            break;
+        i++;
     }
     if(dependenciesCount == 0){//if no dependencies are listed
         //return error TODO
     }
     currTarget->dependencies = calloc_w(dependenciesCount, sizeof(char *));
+    currTarget->dependSize = dependenciesCount;    
     //copy the dependencies from tempList to the dependencies list
-    for(int j = 0; j < dependeciesCount; j++){
+    for(int j = 0; j < dependenciesCount; j++){
         int length = strlen(tempList[j]);
         currTarget->dependencies[j] = calloc_w(length, sizeof(char));
         strcpy(currTarget->dependencies[j], tempList[j]);
         free(tempList[j]);         
     }
     free(tempList);
-    return 
+    //return the newly initialized target
+    return currTarget;
 }
 /*
  * process a Makefile line based on its type(a blank line, a target, a command or a comment)
  * add information to the currTarget
  */
-void processLine(char *line, Target *currTarget){
+Target *processLine(char *line, Target *currTarget){
     if (NULL == line)
-        return;
-    if('#' == line[0]){//if it is a comment line
-        return;        
-    }
+        return NULL;
+    if('#' == line[0])//if it is a comment line
+        return NULL;        
     if(1 == isBlankLine(line))
-        return;
+        return NULL;
     //if it is a command line
-    else if('\t' == line[0]){
+    if('\t' == line[0]){
         //save the command to the list of commands
         if(NULL == currTarget->commandList){
             currTarget->commandList = calloc_w(1,sizeof(Command));
@@ -123,29 +145,34 @@ void processLine(char *line, Target *currTarget){
             currTarget->endC = (currTarget->endC)->next;
             (currTarget->endC)->curr = line + 1; 
         }
+        return NULL;   
     }
     //if it is a target line
     else if(' ' != line[0]){
-        processTargetLine(line, currTarget);
+        currTarget = processTargetLine(line);
+        return currTarget;
     }
     else{//invalid format
+        exit(1);
         //TODO    
     }
 }
 /*
  * parse makefile and generate a list of Target
  */
-void parseFile(FILE *file){
+TargetList *parseFile(FILE *file){
     TargetList *start = NULL;
     TargetList *end = NULL;
     Target *currTarget = NULL;    
-    char *buff[4096];
+    char buff[4096];
+    int lineCount = 0;
     //read from file by line
     while(fgets(buff, BUFFSIZE , file)!=NULL){
+        lineCount++;
         int inputLength = strlen(buff);
         //check if the buffer overflows or there is a NULL byte in the line
-        if(buff[inputLength - 1] != '\n'){
-            if(inputLength = BUFFSIZE){//buffer overflow
+        if('\n' != buff[inputLength - 1]){
+            if(inputLength == BUFFSIZE){//buffer overflow
                 fprintf(stderr,"Size of line exceeds the buffer size limit. Exit the program\n");
                 exit(1);
             }
@@ -156,18 +183,21 @@ void parseFile(FILE *file){
         }
         //replace the new line with null symbol
         buff[inputLength - 1] = '\0';
-        currTarget = initTarget();
-        processLine(buff, currTarget, list);
-        //add the target to the target list    
-        if(NULL == start && end == NULL){
-            start = initTargetList(currTarget);
-            end = start;
+        Target *returnT = processLine(buff, currTarget);
+        if(NULL != returnT){
+            //add the target to the target list    
+            if(NULL == start && end == NULL){
+                start = initTargetList(returnT);
+                end = start;
+            }
+            else{
+                end->next = initTargetList(returnT);
+                end = end->next;
+            }
+            currTarget = returnT;
         }
-        else{
-            end->next = initTargetList(currTarget);
-            end = end->next;
-        }
-    }    
+    }
+    return start;
 }
 
 

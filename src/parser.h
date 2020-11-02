@@ -1,18 +1,20 @@
 typedef struct Command{
     char *curr;
-    char *next;
-} CommandList;
+    struct Command *next;
+} Command;
 
 typedef struct Target{
     char *fileName;
     Command *commandList;//start of command list
     Command *endC;//end of command list 
     char **dependencies; 
+    int dependSize;
     short isOutOfDate;
 } Target;
 
 typedef struct TargetList{
     Target *curr;
-    Target *next;
-}
-void parseFile(FILE *file); 
+    struct TargetList *next;
+} TargetList;
+
+TargetList *parseFile(FILE *file); 

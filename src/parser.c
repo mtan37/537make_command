@@ -20,6 +20,28 @@
 #include "util.h"
 const int BUFFSIZE = 4096;
 
+//Function for TESTING, DELETE
+void printTargetList(TargetList *list){
+    while(NULL != list){
+        Target *curr = list->curr;
+        printf("-----Target info-----\n");
+        printf("target filename %s,filename length: %ld \n", curr->fileName, strlen(curr->fileName));
+        
+        printf("Target dependencies\n");//DELETE
+        for(int i = 0; i < curr->dependSize; i++){
+            printf("dependecy %d: %s\n", i + 1, curr->dependencies[i]);//DELETE
+        }
+        Command *currC = curr->commandList;
+        int count = 0;
+        while(NULL != currC){
+            count++;
+            printf("command %d: %s\n", count, currC->curr);//DELETE
+            currC = (currC->next);
+        }
+        list = list->next; 
+    }  
+}
+
 /*
  * initialize a targetList object
  */
@@ -36,6 +58,16 @@ TargetList *initTargetList(Target *curr){
 Target *initTarget(){
     Target *curr = calloc_w(1,sizeof(Target));
     curr->isOutOfDate = 0;
+    return curr;
+}
+
+/*
+ * initialize a target object
+ */
+Command *initCommand(){
+    Command *curr = calloc_w(1,sizeof(Command));
+    curr->curr = NULL;
+    curr->next = NULL;
     return curr;
 }
 
@@ -121,6 +153,7 @@ Target *processTargetLine(char *line){
     //return the newly initialized target
     return currTarget;
 }
+
 /*
  * process a Makefile line based on its type(a blank line, a target, a command or a comment)
  * add information to the currTarget
@@ -134,16 +167,27 @@ Target *processLine(char *line, Target *currTarget){
         return NULL;
     //if it is a command line
     if('\t' == line[0]){
+        char *command = calloc_w(strlen(line), sizeof(char));
+        strncpy(command, line+1, strlen(line) - 1);
         //save the command to the list of commands
-        if(NULL == currTarget->commandList){
-            currTarget->commandList = calloc_w(1,sizeof(Command));
-            (currTarget->commandList)->curr = line + 1;
+        if(NULL == (currTarget->commandList)){
+            currTarget->commandList = initCommand();
+            
+            (currTarget->commandList)->curr = command;
             currTarget->endC = currTarget->commandList;
         }
         else{
-            (currTarget->endC)->next = calloc_w(1,sizeof(Command));
-            currTarget->endC = (currTarget->endC)->next;
-            (currTarget->endC)->curr = line + 1; 
+            (currTarget->endC)->next = initCommand();
+            Command *next = ((currTarget->endC)->next);
+            currTarget->endC = next;
+            next->curr = command; 
+        }
+        
+        Command *currC = currTarget->commandList;
+        int count = 0;
+        while(NULL != currC){
+            count++;
+            currC = (currC->next);
         }
         return NULL;   
     }
@@ -164,6 +208,7 @@ TargetList *parseFile(FILE *file){
     TargetList *start = NULL;
     TargetList *end = NULL;
     Target *currTarget = NULL;    
+    Target *returnT;
     char buff[4096];
     int lineCount = 0;
     //read from file by line
@@ -183,7 +228,7 @@ TargetList *parseFile(FILE *file){
         }
         //replace the new line with null symbol
         buff[inputLength - 1] = '\0';
-        Target *returnT = processLine(buff, currTarget);
+        returnT = processLine(buff, currTarget);
         if(NULL != returnT){
             //add the target to the target list    
             if(NULL == start && end == NULL){
@@ -196,6 +241,7 @@ TargetList *parseFile(FILE *file){
             }
             currTarget = returnT;
         }
+        printTargetList(start);
     }
     return start;
 }

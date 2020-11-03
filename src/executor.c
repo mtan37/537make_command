@@ -8,28 +8,38 @@
 
 #include "executor.h"
 
-void executeCommand(Target* target) {
+#define BUFSIZE 4096
+
+//  used to execute a command
+void executeCommand(char*  fileName, char* command) {
 	pid_t pid;
 	pid = fork();
 
 	int status;
 
-	// append command->curr to commandArg and set command->curr = command->next while command->next != endC?
-	
-	// error handling
-	if (pid < 0) {
+	if (pid == 0) {
+		execvp(fileName, command);
+	}
+	else {
+		while(wait(&status) != 0) {
+			// do nothing
+		}
+	}
+}
+
+// used to parse a command
+void getCommand(Target* target) {
+	if (target->commandList->curr == NULL) {
 		exit(-1);
 	}
 
-	if (pid == 0) { // we are the child process
-		if (execvp(target->fileName, commandArg) < 0){
-			exit(-1);
-		} else{
-			exit(0);
-		}
-	} else { // we are the parent process
-		while(wait(&status) != 0) {
-			// TODO: error handling?
-		}
+	char *str[BUFSIZE];
+
+	while (target->commandList->curr != NULL) {
+		strcat(str, target->commnandList->curr);
+		target->commandList->curr = target->commandList->next;
 	}
+
+	executeCommand(target->fileName, str);
+	free_w(str);
 }

@@ -3,8 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>//DELETE
-#include "parser.h"
-
+#include "validator.h"
 int main(){
     FILE *file;
     FILE *file_m = fopen("./makefile","r");
@@ -26,6 +25,5 @@ int main(){
     //pass the file obj to the parser
     TargetList *list = parseFile(file);    
     //pass the start TargetList to validator
-    //TODO    
-
+    validateTargets(list);      
 }

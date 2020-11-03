@@ -17,4 +17,6 @@ typedef struct TargetList{
     struct TargetList *next;
 } TargetList;
 
+Target *getTargetFromList(TargetList *list, char *targetName);
+
 TargetList *parseFile(FILE *file); 

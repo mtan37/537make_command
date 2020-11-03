@@ -20,28 +20,6 @@
 #include "util.h"
 const int BUFFSIZE = 4096;
 
-//Function for TESTING, DELETE
-void printTargetList(TargetList *list){
-    while(NULL != list){
-        Target *curr = list->curr;
-        printf("-----Target info-----\n");
-        printf("target filename %s,filename length: %ld \n", curr->fileName, strlen(curr->fileName));
-        
-        printf("Target dependencies\n");//DELETE
-        for(int i = 0; i < curr->dependSize; i++){
-            printf("dependecy %d: %s\n", i + 1, curr->dependencies[i]);//DELETE
-        }
-        Command *currC = curr->commandList;
-        int count = 0;
-        while(NULL != currC){
-            count++;
-            printf("command %d: %s\n", count, currC->curr);//DELETE
-            currC = (currC->next);
-        }
-        list = list->next; 
-    }  
-}
-
 /*
  * initialize a targetList object
  */
@@ -92,13 +70,13 @@ short isBlankLine(char *line){
  * if target with the filename is not found, returns NULL
  */
 Target *getTargetFromList(TargetList *list, char *targetName){
-    //TODO
     //loop through the list
     while(NULL != list){
         Target *curr = list->curr;
         if(NULL != curr && 0 == strcmp(curr->fileName, targetName)){
             return curr;
         }
+        list = list->next;
     }
     return NULL;
 }
@@ -106,7 +84,7 @@ Target *getTargetFromList(TargetList *list, char *targetName){
 /*
  * process line that describe a target
  */
-Target *processTargetLine(char *line){
+Target *processTargetLine(char *line, int lineCount){
     int length = strlen(line);
     char buff[BUFFSIZE];
     char **tempList = calloc_w(BUFFSIZE, sizeof(char *));
@@ -118,7 +96,8 @@ Target *processTargetLine(char *line){
     }
     //check if there exist a valid target
     if(i <= 0 || i >= BUFFSIZE){
-        //return error TODO
+        fprintf(stderr, "%d: Can't parse target: \"%s\"\n", lineCount, line);
+        exit(1);
     }
     buff[i] = '\n';
     i++;//skip char :
@@ -145,7 +124,8 @@ Target *processTargetLine(char *line){
         i++;
     }
     if(dependenciesCount == 0){//if no dependencies are listed
-        //return error TODO
+        currTarget->dependSize = 0;
+        currTarget->dependencies = NULL;    
     }
     currTarget->dependencies = calloc_w(dependenciesCount, sizeof(char *));
     currTarget->dependSize = dependenciesCount;    
@@ -165,7 +145,7 @@ Target *processTargetLine(char *line){
  * process a Makefile line based on its type(a blank line, a target, a command or a comment)
  * add information to the currTarget
  */
-Target *processLine(char *line, Target *currTarget){
+Target *processLine(char *line, Target *currTarget, int lineCount){
     if (NULL == line)
         return NULL;
     if('#' == line[0])//if it is a comment line
@@ -200,12 +180,12 @@ Target *processLine(char *line, Target *currTarget){
     }
     //if it is a target line
     else if(' ' != line[0]){
-        currTarget = processTargetLine(line);
+        currTarget = processTargetLine(line, lineCount);
         return currTarget;
     }
     else{//invalid format
+        fprintf(stderr, "%d: Unexpected space at beginning of line: \"%s\"\n", lineCount, line);
         exit(1);
-        //TODO    
     }
 }
 
@@ -226,17 +206,17 @@ TargetList *parseFile(FILE *file){
         //check if the buffer overflows or there is a NULL byte in the line
         if('\n' != buff[inputLength - 1]){
             if(inputLength == BUFFSIZE){//buffer overflow
-                fprintf(stderr,"Size of line exceeds the buffer size limit. Exit the program\n");
+                fprintf(stderr,"%d: Size of line exceeds the buffer size limit.\n", lineCount);
                 exit(1);
             }
             else{//NULL byte exist in line
-                fprintf(stderr,"Detect NULL byte in the line. Exit the program\n");
+                fprintf(stderr,"%d: Detect NULL byte in the line \n", lineCount);
                 exit(1);
             }
         }
         //replace the new line with null symbol
         buff[inputLength - 1] = '\0';
-        returnT = processLine(buff, currTarget);
+        returnT = processLine(buff, currTarget, lineCount);
         if(NULL != returnT){
             //add the target to the target list    
             if(NULL == start && end == NULL){
@@ -249,7 +229,6 @@ TargetList *parseFile(FILE *file){
             }
             currTarget = returnT;
         }
-        printTargetList(start);
     }
     return start;
 }

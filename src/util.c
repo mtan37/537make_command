@@ -9,7 +9,7 @@
 void *calloc_w(size_t num, size_t size){
     void *returnVal = calloc(num,size);
     if(NULL == returnVal){
-        printf("Error: Can't allocate more memory in heap.\n");
+        fprintf(stderr,"Error: Can't allocate more memory in heap.\n");
         exit(1);
     }
     return returnVal;
@@ -22,7 +22,7 @@ void pthread_create_w(pthread_t *thread, const pthread_attr_t *attr,
                    void *(*start_routine) (void *), void *arg){
     int returnVal = pthread_create(thread,attr,start_routine,arg);
     if(0 != returnVal){
-        printf("Error: pthread_create() failed. Error code: %d\n",returnVal);
+        fprintf(stderr, "Error: pthread_create() failed. Error code: %d\n",returnVal);
         exit(1);
     }
 }
@@ -33,7 +33,7 @@ void pthread_create_w(pthread_t *thread, const pthread_attr_t *attr,
 void pthread_join_w(pthread_t thread, void **retval){
     int returnVal = pthread_join(thread,retval);
     if (0 != returnVal){
-        printf("Error: pthread_join() failed. Error code: %d\n",returnVal);
+        fprintf(stderr, "Error: pthread_join() failed. Error code: %d\n",returnVal);
         exit(1);
     }
 }

@@ -18,7 +18,7 @@ void executeCommand(char*  fileName, char* command) {
 	int status;
 
 	if (pid == 0) {
-		execvp(fileName, command);
+		execvp(command->, command);
 	}
 	else {
 		while(wait(&status) != 0) {
@@ -27,8 +27,10 @@ void executeCommand(char*  fileName, char* command) {
 	}
 }
 
-// used to parse a command
-void getCommand(Target* target) {
+/*
+ *  and execute commands from a 
+ */
+void processCommands(Target* target) {
 	if (target->commandList->curr == NULL) {
 		exit(-1);
 	}
@@ -43,4 +45,3 @@ void getCommand(Target* target) {
 	executeCommand(target->fileName, str);
 	free_w(str);
 }
->>>>>>> origin/jrmartin4

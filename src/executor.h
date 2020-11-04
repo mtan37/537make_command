@@ -17,6 +17,6 @@
 #define BUFSIZE 4096
 
 void executeCommand(char*  fileName, char* command);
-void getCommand(Target* target);
+void processCommandS(Target* target);
 
 #endif

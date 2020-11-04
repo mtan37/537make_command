@@ -1,3 +1,4 @@
+//this module handles the build and validation of dependecies 
 #include <errno.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -5,65 +6,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include "validator.h"
+#include "graphBuilder.h"
 #include "util.h"
-
-/*
- * Initialize a ChainMapNode object and return the object
- */
-ChainMapNode *initChainMapNode(char *targetName){
-    ChainMapNode *node = calloc_w(1, sizeof(ChainMapNode));
-    node->targetName = targetName;
-    node->next = NULL;
-    node->validated = 0;
-    node->validating = 0;
-    return node;
-}
-
-/*
- * Initialize a ChainMap object and return it
- */
-ChainMap *initChainMap(){
-    ChainMap *map = calloc_w(1,sizeof(ChainMap));
-    map->start = NULL;
-    map->end = NULL;
-    return map; 
-}
-
-/*
- * Add a new node to the chain map
- */
-void addToChainMap(ChainMapNode *node, ChainMap *map){
-    //if the map is empty, assign the node to both start and end
-    if(NULL == map->start || NULL == map->end){
-        map->start = node;
-        map->end = node;
-    }
-    //else if the map is not empty 
-    else{
-        (map->end)->next = node;
-        map->end = node;
-    }
-}   
-
-/*
- * return the ChainMapNode in the ChainMap with the targetName if one exist
- * if not, initialize a new ChainMapNode for the target, add it to the ChainMap, and return the node
- */
-ChainMapNode *getMapNode(char *targetName, ChainMap *map){
-    //lopp through the map
-    ChainMapNode *curr = map->start;
-    while(NULL != curr){
-        if(0 == strcmp(curr->targetName,targetName)){
-            return curr;
-        }
-        curr = curr->next;
-    }
-    curr = initChainMapNode(targetName);
-    addToChainMap(curr,map);
-    return curr;
-}
-
 void validateTarget(Target *currTarget, ChainMap *map, TargetList *targets){
     //get the ChainMapNode corresponds to this target
     ChainMapNode *targetNode = getMapNode(currTarget->fileName, map);

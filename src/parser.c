@@ -18,35 +18,33 @@
 #include <string.h>
 #include "parser.h"
 #include "util.h"
+
 const int BUFFSIZE = 4096;
 
-/*
- * initialize a targetList object
- */
-TargetList *initTargetList(Target *curr){
-    TargetList *list = calloc_w(1, sizeof(TargetList)); 
-    list->curr = curr;
-    list->next = NULL;
-    return list;
-}
-
-/*
- * initialize a target object
- */
-Target *initTarget(){
-    Target *curr = calloc_w(1,sizeof(Target));
-    curr->isOutOfDate = 0;
-    return curr;
-}
-
-/*
- * initialize a target object
- */
-Command *initCommand(){
-    Command *curr = calloc_w(1,sizeof(Command));
-    curr->curr = NULL;
-    curr->next = NULL;
-    return curr;
+//Function for TESTING, DELETE
+void printTargetList(TargetList *list){
+    while(NULL != list){
+        Target *curr = list->curr;
+        printf("-----Target info-----\n");
+        printf("target filename %s,filename length: %ld \n", curr->fileName, strlen(curr->fileName));
+        printf("target isOutOfDate: %d\n", curr->isOutOfDate);
+        printf("Target dependencies\n");//DELETE
+        for(int i = 0; i < curr->dependSize; i++){
+            printf("dependecy %d: %s\n", i + 1, curr->dependencies[i]);//DELETE
+        }
+        Command *currC = curr->commandList;
+        int count = 0;
+        while(NULL != currC){
+            count++;
+            printf("command %d: %s", count, currC->command);//DELETE
+            for(int i = 0; i < currC->argSize; i++){
+                printf(", %s", currC->args[i]);
+            }
+            printf("\n");
+            currC = (currC->next);
+        }
+        list = list->next; 
+    }  
 }
 
 /*
@@ -63,22 +61,6 @@ short isBlankLine(char *line){
         i++;
     }
     return 1;
-}
-
-/*
- * give a filename, return the target object from the target list
- * if target with the filename is not found, returns NULL
- */
-Target *getTargetFromList(TargetList *list, char *targetName){
-    //loop through the list
-    while(NULL != list){
-        Target *curr = list->curr;
-        if(NULL != curr && 0 == strcmp(curr->fileName, targetName)){
-            return curr;
-        }
-        list = list->next;
-    }
-    return NULL;
 }
 
 /*
@@ -142,6 +124,51 @@ Target *processTargetLine(char *line, int lineCount){
 }
 
 /*
+ * Parse the command line and save it into the cmdStruct
+ */
+int parseCommand(char *cmdLine, Command *cmdStruct){
+    printf("parse command\n");//DELETE
+    char *cmdLineCp = calloc_w(strlen(cmdLine)+1 ,sizeof(char));
+    const char delim[2] = " ";
+    strncpy(cmdLineCp, cmdLine, strlen(cmdLine));
+    printf("parse command2\n");//DELETE
+    //get the execute file name
+    int argc = 0;
+    int length = strlen(cmdLine);
+    char *buff[length];
+    char *arg = strtok(cmdLineCp,delim);
+    printf("parse command3\n");//DELETE
+    while(NULL != arg){
+        printf("the parsed arg: %s\n", arg);//DELETE
+        char *argTmp = calloc_w(strlen(arg) + 1, sizeof(char));
+        strncpy(argTmp, arg, strlen(arg));
+        buff[argc] = argTmp;
+        argc++;
+        arg = strtok(NULL, delim);
+    }
+    free(cmdLineCp);
+    if(argc <= 0){
+        return 0;
+    }
+    printf("parse command4\n");//DELETE
+    cmdStruct->args = calloc_w(argc - 1, sizeof(char*));
+    cmdStruct->argSize = argc - 1;
+    printf("parse command5\n");//DELETE
+    //copy the args to the Command struct
+    for(int i = 0; i < argc;i++){
+        if(0 == i){
+            printf("copy from buff: %s\n", buff[i]);//DELETE
+            cmdStruct->command = buff[i];
+            continue;
+        }
+        printf("copy from buff: %s\n", buff[i]);//DELETE
+        (cmdStruct->args)[i - 1] = buff[i];
+    }
+    printf("parse command6\n");//DELETE
+    return 1;
+}
+
+/*
  * process a Makefile line based on its type(a blank line, a target, a command or a comment)
  * add information to the currTarget
  */
@@ -154,20 +181,27 @@ Target *processLine(char *line, Target *currTarget, int lineCount){
         return NULL;
     //if it is a command line
     if('\t' == line[0]){
-        char *command = calloc_w(strlen(line), sizeof(char));
-        strncpy(command, line+1, strlen(line) - 1);
+        char *command = line + 1;
         //save the command to the list of commands
         if(NULL == (currTarget->commandList)){
-            currTarget->commandList = initCommand();
-            
-            (currTarget->commandList)->curr = command;
+            Command *next = initCommand();
+            if(0 == parseCommand(command, next)){
+                fprintf(stderr,
+                    "%d: Error parsing command line: \"%s\"\n", lineCount,line);
+                exit(1);
+            }
+            currTarget->commandList = next;
             currTarget->endC = currTarget->commandList;
         }
         else{
-            (currTarget->endC)->next = initCommand();
-            Command *next = ((currTarget->endC)->next);
+            Command *next = initCommand();
+            if(0 == parseCommand(command, next)){
+                fprintf(stderr,
+                    "%d: Error parsing command line: \"%s\"\n", lineCount,line);
+                exit(1);
+            }
+            (currTarget->endC)->next = next;
             currTarget->endC = next;
-            next->curr = command; 
         }
         
         Command *currC = currTarget->commandList;

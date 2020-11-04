@@ -11,14 +11,14 @@
 #define BUFSIZE 4096
 
 //  used to execute a command
-void executeCommand(char*  fileName, char* command) {
+void executeCommand(char* command) {	
 	pid_t pid;
 	pid = fork();
 
 	int status;
 
 	if (pid == 0) {
-		execvp(fileName, command);
+		execvp(command->curr, command);
 	}
 	else {
 		while(wait(&status) != 0) {
@@ -27,20 +27,12 @@ void executeCommand(char*  fileName, char* command) {
 	}
 }
 
-// used to parse a command
+// used to call the function to execute a command after checking if it's null
 void getCommand(Target* target) {
 	if (target->commandList->curr == NULL) {
 		exit(-1);
 	}
 
-	char *str[BUFSIZE];
-
-	while (target->commandList->curr != NULL) {
-		strcat(str, target->commnandList->curr);
-		target->commandList->curr = target->commandList->next;
-	}
-
-	executeCommand(target->fileName, str);
-	free_w(str);
+	executeCommand(target->commandList->curr);
 }
 >>>>>>> origin/jrmartin4

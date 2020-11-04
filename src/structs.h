@@ -7,6 +7,7 @@ typedef struct Command{
     struct Command *next;
 } Command;
 
+//struct represents each target
 typedef struct Target{
     char *fileName;
     Command *commandList;//start of command list
@@ -21,6 +22,7 @@ typedef struct TargetList{
     struct TargetList *next;
 } TargetList;
 
+//structs used sole for dependency validation
 typedef struct ChainMapNode{
     char *targetName;
     struct ChainMapNode *next;

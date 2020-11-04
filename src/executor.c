@@ -11,14 +11,14 @@
 #define BUFSIZE 4096
 
 //  used to execute a command
-void executeCommand(char*  fileName, char* command) {
+void executeCommand(char* exec, char** args) {
 	pid_t pid;
 	pid = fork();
 
 	int status;
 
 	if (pid == 0) {
-		execvp(command->, command);
+		execvp(exec, args);
 	}
 	else {
 		while(wait(&status) != 0) {
@@ -31,7 +31,10 @@ void executeCommand(char*  fileName, char* command) {
  *  and execute commands from a 
  */
 void processCommands(Target* target) {
-	if (target->commandList->curr == NULL) {
+	//ex of passing to executeCommand
+    //assume the Command variable is named cmd
+    //executeCommand(cmd->command, cmd->args); 
+    if (target->commandList->curr == NULL) {
 		exit(-1);
 	}
 

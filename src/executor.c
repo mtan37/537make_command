@@ -59,12 +59,17 @@ void processCommandsHelper(Target* target, TargetList* targets) {
 /*
  *  and execute commands from a 
  */
-void processCommands(TargetList* targets) {
-    TargetList *currListNode = targets;
-    //loop through the list
-    while(NULL != currListNode && NULL != currListNode->curr){
-        Target *curr = currListNode->curr;
-        processCommandsHelper(curr, targets);
-        currListNode = currListNode->next;
+void processCommands(TargetList* targets, char *targetName) {
+    Target *target = NULL;
+    if(targetName == NULL){//take the first target in the list
+        target = targets->curr;
     }
+    else{
+        target = getTargetFromList(targets, targetName);
+        if(NULL == target){
+            fprintf(stderr, "%s is not a target name. Exit the program\n", targetName);
+            exit(1);
+        }
+    }
+    processCommandsHelper(target, targets);
 }

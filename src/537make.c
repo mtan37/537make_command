@@ -3,15 +3,29 @@
 //it will looks for the make file, and pass the File obj to the parser
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>//DELETE
+#include <unistd.h>
 #include "parser.h"
 #include "executor.h"
-int main(){
+int main(int argc, char **argv){
     FILE *file;
-    FILE *file_m = fopen("./makefile","r");
-    FILE *file_M = fopen("./Makefile","r");
+    FILE *file_user = NULL;
+    char *targetName = NULL;
+    int opt = getopt(argc, argv, "f:");
+    if ('f' == opt){
+        file_user = fopen(optarg, "r"); 
+    }
+    if(optind < argc){
+        //get the build target name
+        targetName = argv[optind];
+    }
+    FILE *file_m = fopen("makefile","r");
+    FILE *file_M = fopen("Makefile","r");
+    //check if there is an user specified file
+    if(NULL != file_user){
+        file = file_user;
+    }
     //check if there is a makefile 
-    if(NULL != file_m){
+    else if(NULL != file_m){
         file = file_m;
     }
     //check if there is a Makefile
@@ -27,6 +41,6 @@ int main(){
     TargetList *list = parseFile(file);    
     //pass the start TargetList to validator
     validateTargets(list);      
-    //process and execute the command
-    processCommands(list);
+    //process the commands and build the target
+    processCommands(list, targetName);
 }

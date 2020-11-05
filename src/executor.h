@@ -7,6 +7,6 @@
 
 #include "structs.h"
 
-void processCommands(TargetList* target);
+void processCommands(TargetList* target, char *targetName);
 
 #endif

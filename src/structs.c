@@ -1,3 +1,4 @@
+// Authors: Marvin Tan(mtan37) (marvin.tan@wisc.edu), Joseph Martin(jrmartin4) (jrmartin4@wisc.edu)
 //this module contains abstractions of different data structures, and provide functions to access them
 #include <stdio.h>
 #include <string.h>
@@ -28,8 +29,8 @@ Target *initTarget(){
 Command *initCommand(){
     Command *curr = calloc_w(1,sizeof(Command));
     curr->command = NULL;
-    curr->argSize = 0;
-    curr->args = NULL;
+    curr->argc = 0;
+    curr->argv = NULL;
     curr->next = NULL;
     return curr;
 }

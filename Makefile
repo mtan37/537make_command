@@ -3,11 +3,13 @@ CC = gcc
 CFLAGS = -c -Wall -Wextra -pedantic -g -pthread
 ODIR = ./obj
 SDIR = ./src
-OBJECTS = $(ODIR)/537make.o $(ODIR)/util.o $(ODIR)/parser.o $(ODIR)/graphBuilder.o $(ODIR)/structs.o 
-HEADERS = $(SDIR)/util.h $(SDIR)/parser.h
+OBJECTS = $(ODIR)/537make.o $(ODIR)/util.o $(ODIR)/parser.o $(ODIR)/graphBuilder.o $(ODIR)/structs.o $(ODIR)/executor.o 
+HEADERS = $(SDIR)/util.h $(SDIR)/parser.h $(SDIR)/executor.h
 537make:$(OBJECTS)
 	$(CC) -Wall -pthread -Wextra $(OBJECTS) -o 537make
 $(ODIR)/537make.o: $(SDIR)/537make.c $(HEADERS) | $(ODIR)
+	$(CC) $(CFLAGS) $< -o $@
+$(ODIR)/executor.o: $(SDIR)/executor.c $(SDIR)/executor.h $(SDIR)/structs.h | $(ODIR)
 	$(CC) $(CFLAGS) $< -o $@
 $(ODIR)/parser.o: $(SDIR)/parser.c $(SDIR)/parser.h $(SDIR)/graphBuilder.h | $(ODIR)
 	$(CC) $(CFLAGS) $< -o $@

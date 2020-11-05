@@ -1,5 +1,4 @@
 // Authors: Marvin Tan (marvin.tan@wisc.edu), Joseph Martin (jrmartin4@wisc.edu)
-
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -7,44 +6,65 @@
 #include <sys/wait.h>
 
 #include "executor.h"
-
-#define BUFSIZE 4096
-
 //  used to execute a command
-void executeCommand(char* exec, char** args) {
+short executeCommand(char** argv) {
 	pid_t pid;
 	pid = fork();
-
 	int status;
+    if (-1 == pid){
+        fprintf(stderr, "ERROR: child process failed to be created\n");
+        exit(1);
+    }
+	else if (0 == pid) {//this is the child process
+		execvp(argv[0], argv);
+        //if the code reaches here, the execution failed abnormally 
+        exit(1);
+    }
+	else {//this is the parent process
+		wait(&status);
+        //if the child process exited abnormally
+        if( 0 != status){
+            return 0;
+        }
+	    return 1;
+    }
+}
 
-	if (pid == 0) {
-		execvp(exec, args);
-	}
-	else {
-		while(wait(&status) != 0) {
-			// do nothing
-		}
-	}
+/*
+ * Recursive helper for the processCommands function
+ */
+void processCommandsHelper(Target* target, TargetList* targets) {
+    //if the target is out of date
+    if(1 == target->isOutOfDate){
+        //loop through its dependecnies
+        for(int i = 0; i < target->dependSize; i++){
+            Target *dep = getTargetFromList(targets, target->dependencies[i]);
+            //if the dependecy is also a target, and it is out of date 
+            if(NULL != dep && 1 == dep->isOutOfDate){
+                processCommandsHelper(dep, targets);
+            }
+        }
+        target->isOutOfDate = 0; 
+        //execute the commands
+        Command *cmd = target->commandList;
+        while(NULL != cmd){
+            if(0 == executeCommand(cmd->argv)){
+                exit(1);
+            }
+            cmd = cmd->next;
+        }
+    }
 }
 
 /*
  *  and execute commands from a 
  */
-void processCommands(Target* target) {
-	//ex of passing to executeCommand
-    //assume the Command variable is named cmd
-    //executeCommand(cmd->command, cmd->args); 
-    if (target->commandList->curr == NULL) {
-		exit(-1);
-	}
-
-	char *str[BUFSIZE];
-
-	while (target->commandList->curr != NULL) {
-		strcat(str, target->commnandList->curr);
-		target->commandList->curr = target->commandList->next;
-	}
-
-	executeCommand(target->fileName, str);
-	free_w(str);
+void processCommands(TargetList* targets) {
+    TargetList *currListNode = targets;
+    //loop through the list
+    while(NULL != currListNode && NULL != currListNode->curr){
+        Target *curr = currListNode->curr;
+        processCommandsHelper(curr, targets);
+        currListNode = currListNode->next;
+    }
 }

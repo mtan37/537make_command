@@ -1,18 +1,4 @@
-//parses the Make file.
-//It will read the file and load it into a struct called Target
-//Target... just like the name, represents a target file. It will have three fields
-    //1)fileName
-    //2)a list of dependencies
-    //3)a list of command to execute
-    //4)indicte whether it is out of date
-//it will store those loaded targets into a list of targets.
-//it will call the validator to check:
-    
-    //1)whether there is a chain in the dependencies. If there is, not more check is needed and return error
-    //2)whether the dependecies are all existing files or targets
-    //3) whether the dependencies are out of date
-//a target will be only sent to the executor if it is out of date
-
+// Authors: Marvin Tan(mtan37) (marvin.tan@wisc.edu), Joseph Martin(jrmartin4) (jrmartin4@wisc.edu)
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -21,31 +7,6 @@
 
 const int BUFFSIZE = 4096;
 
-//Function for TESTING, DELETE
-void printTargetList(TargetList *list){
-    while(NULL != list){
-        Target *curr = list->curr;
-        printf("-----Target info-----\n");
-        printf("target filename %s,filename length: %ld \n", curr->fileName, strlen(curr->fileName));
-        printf("target isOutOfDate: %d\n", curr->isOutOfDate);
-        printf("Target dependencies\n");//DELETE
-        for(int i = 0; i < curr->dependSize; i++){
-            printf("dependecy %d: %s\n", i + 1, curr->dependencies[i]);//DELETE
-        }
-        Command *currC = curr->commandList;
-        int count = 0;
-        while(NULL != currC){
-            count++;
-            printf("command %d: %s", count, currC->command);//DELETE
-            for(int i = 0; i < currC->argSize; i++){
-                printf(", %s", currC->args[i]);
-            }
-            printf("\n");
-            currC = (currC->next);
-        }
-        list = list->next; 
-    }  
-}
 
 /*
  * Check if the line contains only spaces and tabs
@@ -127,19 +88,15 @@ Target *processTargetLine(char *line, int lineCount){
  * Parse the command line and save it into the cmdStruct
  */
 int parseCommand(char *cmdLine, Command *cmdStruct){
-    printf("parse command\n");//DELETE
     char *cmdLineCp = calloc_w(strlen(cmdLine)+1 ,sizeof(char));
     const char delim[2] = " ";
     strncpy(cmdLineCp, cmdLine, strlen(cmdLine));
-    printf("parse command2\n");//DELETE
     //get the execute file name
     int argc = 0;
     int length = strlen(cmdLine);
     char *buff[length];
     char *arg = strtok(cmdLineCp,delim);
-    printf("parse command3\n");//DELETE
     while(NULL != arg){
-        printf("the parsed arg: %s\n", arg);//DELETE
         char *argTmp = calloc_w(strlen(arg) + 1, sizeof(char));
         strncpy(argTmp, arg, strlen(arg));
         buff[argc] = argTmp;
@@ -150,21 +107,14 @@ int parseCommand(char *cmdLine, Command *cmdStruct){
     if(argc <= 0){
         return 0;
     }
-    printf("parse command4\n");//DELETE
-    cmdStruct->args = calloc_w(argc - 1, sizeof(char*));
-    cmdStruct->argSize = argc - 1;
-    printf("parse command5\n");//DELETE
+    cmdStruct->argv = calloc_w(argc + 1, sizeof(char*));
+    cmdStruct->argc = argc;
     //copy the args to the Command struct
     for(int i = 0; i < argc;i++){
-        if(0 == i){
-            printf("copy from buff: %s\n", buff[i]);//DELETE
-            cmdStruct->command = buff[i];
-            continue;
-        }
-        printf("copy from buff: %s\n", buff[i]);//DELETE
-        (cmdStruct->args)[i - 1] = buff[i];
+        (cmdStruct->argv)[i] = buff[i];
     }
-    printf("parse command6\n");//DELETE
+    //add a NULL pointer at the end of the command arg list for execvp
+    (cmdStruct->argv)[argc] = NULL;
     return 1;
 }
 

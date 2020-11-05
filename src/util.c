@@ -15,28 +15,6 @@ void *calloc_w(size_t num, size_t size){
     return returnVal;
 }
 
-/*
- * error handling for pthread_create
- */
-void pthread_create_w(pthread_t *thread, const pthread_attr_t *attr,
-                   void *(*start_routine) (void *), void *arg){
-    int returnVal = pthread_create(thread,attr,start_routine,arg);
-    if(0 != returnVal){
-        fprintf(stderr, "Error: pthread_create() failed. Error code: %d\n",returnVal);
-        exit(1);
-    }
-}
-
-/*
- * error handling for pthread_join
- */
-void pthread_join_w(pthread_t thread, void **retval){
-    int returnVal = pthread_join(thread,retval);
-    if (0 != returnVal){
-        fprintf(stderr, "Error: pthread_join() failed. Error code: %d\n",returnVal);
-        exit(1);
-    }
-}
 
 /*
  * only free the ptr if it is not equal to NULL

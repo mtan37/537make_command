@@ -1,9 +1,10 @@
+// Authors: Marvin Tan(mtan37) (marvin.tan@wisc.edu), Joseph Martin(jrmartin4) (jrmartin4@wisc.edu)
 #ifndef STRUCTS_H
 #define STRUCTS_H
 typedef struct Command{
     char *command;
-    char **args;
-    int argSize;
+    char **argv;
+    int argc;
     struct Command *next;
 } Command;
 

@@ -39,10 +39,11 @@ void processCommands(TargetList *targets) {
 	}
 
 	while (NULL != targets) {
-		if (targets->curr->isOutOfDate == 0) {
+		if (targets->curr->isOutOfDate == 1) {
 			for (int i = 0; i < targets->curr->dependSize; i++) {
+				processCommands(targets[i]);
 				if (getTargetFromList(targets->next, targets->curr->dependencies[i]) != NULL) {
-					if (targets->next->isOutOfDate == 0) {
+					if (targets->next->isOutOfDate == 1) {
 						executeCommand(targets->curr->commandList->command, targets->curr->commandList->args);
 						targets->next->isOutOfDate = 0;
 					} else {

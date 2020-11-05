@@ -1,6 +1,4 @@
-
-//the main progarm file
-//it will looks for the make file, and pass the File obj to the parser
+// Authors: Marvin Tan(mtan37) (marvin.tan@wisc.edu), Joseph Martin(jrmartin4) (jrmartin4@wisc.edu)
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>

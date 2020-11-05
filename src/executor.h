@@ -1,4 +1,5 @@
-// Authors: Marvin Tan (marvin.tan@wisc.edu), Joseph Martin (jrmartin4@wisc.edu)
+// Authors: Marvin Tan(mtan37) (marvin.tan@wisc.edu), Joseph Martin(jrmartin4) (jrmartin4@wisc.edu)
+
 //take in target object and read the list of commands
 //parse commands and execute them by fork a child process and wait
 

@@ -10,4 +10,8 @@ target: dependence1 dependence2 ... dependencen
 	commandm
 ```
 
+user could specify tset file with a customized path using the -f option
 
+```
+537make -f test <target>
+```

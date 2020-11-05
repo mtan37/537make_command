@@ -30,21 +30,31 @@ void executeCommand(char* exec, char** args) {
 /*
  *  and execute commands from a 
  */
-void processCommands(Target* target) {
+void processCommands(TargetList *targets) {
 	//ex of passing to executeCommand
     //assume the Command variable is named cmd
     //executeCommand(cmd->command, cmd->args); 
-    if (target->commandList->curr == NULL) {
+	if (targets->target->commandList->curr == NULL) {
 		exit(-1);
 	}
 
-	char *str[BUFSIZE];
-
-	while (target->commandList->curr != NULL) {
-		strcat(str, target->commnandList->curr);
-		target->commandList->curr = target->commandList->next;
+	while (NULL != targets) {
+		if (targets->curr->isOutOfDate == 0) {
+			for (int i = 0; i < targets->curr->dependSize; i++) {
+				if (getTargetFromList(targets->next, targets->curr->dependencies[i]) != NULL) {
+					if (targets->next->isOutOfDate == 0) {
+						executeCommand(targets->curr->commandList->command, targets->curr->commandList->args);
+						targets->next->isOutOfDate = 0;
+					} else {
+						// do nothing
+					}
+				} else {
+					// do nothing
+				}
+			}
+		} else {
+			// do nothing
+		}
+		targets = targets->next;
 	}
-
-	executeCommand(target->fileName, str);
-	free_w(str);
 }
